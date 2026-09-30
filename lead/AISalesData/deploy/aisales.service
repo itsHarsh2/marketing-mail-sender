@@ -1,0 +1,49 @@
+# systemd unit for AI Sales Machine
+#
+#   sudo cp deploy/aisales.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now aisales
+#   sudo journalctl -u aisales -f        # live logs
+#
+# Running under systemd is what makes scheduled follow-ups reliable: the
+# in-process scheduler only fires while the app is up, so the app must stay up.
+
+[Unit]
+Description=AI Sales Machine (Streamlit)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aisales
+Group=aisales
+WorkingDirectory=/opt/aisales/app
+
+# Bind to localhost only — nginx terminates TLS and proxies in. Never expose
+# Streamlit directly: it would serve the app over plain HTTP to the internet.
+ExecStart=/opt/aisales/venv/bin/streamlit run app.py \
+    --server.address 127.0.0.1 \
+    --server.port 8501 \
+    --server.headless true \
+    --server.enableCORS false \
+    --server.enableXsrfProtection true \
+    --browser.gatherUsageStats false
+
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+# Chrome needs a writable home and a decent file limit.
+Environment=HOME=/opt/aisales
+Environment=PYTHONUNBUFFERED=1
+LimitNOFILE=8192
+
+# Hardening: the app only ever needs its own directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false
+ReadWritePaths=/opt/aisales
+
+[Install]
+WantedBy=multi-user.target

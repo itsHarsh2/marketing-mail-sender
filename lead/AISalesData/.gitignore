@@ -1,0 +1,32 @@
+# Secrets — never commit these
+.streamlit/secrets.toml
+.sender_key
+*.key
+
+# Local database (contains lead data and encrypted credentials)
+*.db
+*.db-wal
+*.db-shm
+sales_campaign*.db
+
+# Imported contact/sender lists often hold plaintext passwords
+senders*.csv
+contacts*.csv
+
+# Environments & PyInstaller build outputs
+.venv/
+venv/
+build-venv/
+__pycache__/
+*.pyc
+build/
+dist/
+*.exe
+
+# Logs and scraper artifacts
+logs/
+.wdm/
+
+# OS metadata
+.DS_Store
+Thumbs.db
